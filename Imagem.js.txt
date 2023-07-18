@@ -1,0 +1,156 @@
+class Imagem{
+    constructor(x,y,w,h,path){
+        this.x=x;
+        this.y=y;
+        this.w=w;
+        this.h=h;
+        this.img=new Image();
+        this.img.src=path;
+        this.vx=this.vy=0;
+        this.angz=0;
+        this.angy=0;
+        this.vangy=0;
+        this.vup=0;
+    }
+    update(){
+        //this.x+=this.vx;
+        //this.y+=this.vy;
+        this.x+=this.vup*Math.cos(this.angz*Math.PI/180);
+        this.y+=this.vup*Math.sin(this.angz*Math.PI/180);
+        this.angy+=this.vangy;
+    }
+
+    boudingCircle(){
+        let po1=[-this.w/2,-this.h/2,0];
+        let po2=[-this.w/2,this.h/2,0];
+        let po3=[this.w/2,this.h/2,0];
+        let po4=[this.w/2,-this.h/2,0];
+ 
+        let {p1,p2,p3,p4}=this.rotateY(po1,po2,po3,po4);
+
+        let w_n=p3[0]-p1[0];
+        let h_n=p3[1]-p1[1];
+        let x=this.x+this.w/2;
+        let y=this.y+this.h/2;
+        //let x=p1[0]+w_n/2;
+        //let y=p1[1]+h_n/2;
+        let diag=Math.pow(w_n,2)+Math.pow(h_n,2);
+        diag=Math.sqrt(diag);
+        return new Circulo(x,y,diag/2);
+    }
+
+    boudingBox(){
+       let po1=[-this.w/2,-this.h/2,0];
+       let po2=[-this.w/2,this.h/2,0];
+       let po3=[this.w/2,this.h/2,0];
+       let po4=[this.w/2,-this.h/2,0];
+       let aux=this.rotateY(po1,po2,po3,po4);       
+       let {p1,p2,p3,p4}=this.rotateZ(aux.p1,aux.p2,aux.p3,aux.p4);
+       let vet_x=[p1[0],p2[0],p3[0],p4[0]]
+       let vet_y=[p1[1],p2[1],p3[1],p4[1]]
+       let x=Math.min(...vet_x),y=Math.min(...vet_y);
+       let w=Math.max(...vet_x)-x,h=Math.max(...vet_y)-y;
+    
+       return new Retangulo(this.x+x+this.w/2,this.y+y+this.h/2,w,h); 
+    }
+
+    rotateZ(p1,p2,p3,p4){
+        let angZ=this.angz*Math.PI/180
+        const matRotZ=[
+            [Math.cos(angZ),Math.sin(angZ),0],
+            [-Math.sin(angZ),Math.cos(angZ),0],
+            [0,0,1]
+            ]
+        p1=multMatPt(matRotZ,p1);
+        p2=multMatPt(matRotZ,p2);
+        p3=multMatPt(matRotZ,p3);
+        p4=multMatPt(matRotZ,p4);
+        return {p1,p2,p3,p4}
+    }
+    rotateY(p1,p2,p3,p4){
+        let angY=this.angy*Math.PI/180;
+
+        const matRotY=[
+            [Math.cos(angY),0,Math.sin(angY)],
+            [0,1,0],
+            [-Math.sin(angY),0,Math.cos(angY)]
+        ];
+       
+        p1=multMatPt(matRotY,p1);
+        p2=multMatPt(matRotY,p2);
+        p3=multMatPt(matRotY,p3);
+        p4=multMatPt(matRotY,p4);
+        return {p1,p2,p3,p4};
+    }
+    
+    draw(ctx){
+        
+        let po1=[-this.w/2,-this.h/2,0];
+        let po2=[-this.w/2,this.h/2,0];
+        let po3=[this.w/2,this.h/2,0];
+        let po4=[this.w/2,-this.h/2,0];
+
+        this.boudingBox().draw(ctx);
+        const estado=ctx.getTransform();
+
+        ctx.translate(this.x,this.y);
+        ctx.translate(this.w/2,this.h/2);
+        ctx.rotate(this.angz*Math.PI/180);   
+        if(this.vup<0){
+            ctx.scale(-1,1);
+        }
+
+        let {p1,p2,p3,p4}=this.rotateY(po1,po2,po3,po4);
+
+        ctx.drawImage(this.img,p1[0],p1[1],p3[0]-p1[0],p3[1]-p1[1]);
+
+        ctx.setTransform(estado);
+        
+    }
+
+}
+
+class Animacao extends Imagem{
+    constructor(x,y,w,h,path,quadros,tempoAnima){
+        super(x,y,w,h,path);
+        this.quadros=quadros;
+        this.tempoAnima=tempoAnima;
+        this.tempoDecorrido=0;
+        this.atual=0;
+    }
+    update(deltaTime){
+        super.update();
+        this.tempoDecorrido+=deltaTime;
+        //trocar quadro da animação
+        if(this.tempoDecorrido>this.tempoAnima){
+            this.tempoDecorrido=0;
+            //opção 1
+            this.atual=(this.atual+1)%this.quadros;
+            //opção 2
+            this.atual++;
+            if(this.atual>=this.quadros){
+                this.atual=0;
+            }
+        }
+    }
+
+    draw(ctx){
+        const w_corte=this.img.width/this.quadros;
+        const x_corte=this.atual*w_corte;
+        const h_corte=this.img.height;
+        const y_corte=0;
+        this.boudingBox().draw(ctx);
+        const estado=ctx.getTransform();
+        ctx.translate(this.x+this.w/2,this.y+this.w/2);
+        ctx.rotate(this.angz*Math.PI/180);
+        if(this.vup<0){
+            ctx.scale(-1,1);
+        }
+        ctx.drawImage(this.img,x_corte,y_corte,w_corte,h_corte,
+            -this.w/2,-this.h/2,this.w,this.h
+            );
+        ctx.setTransform(estado);
+        
+    }
+
+}

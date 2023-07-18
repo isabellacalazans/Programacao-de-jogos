@@ -1,0 +1,104 @@
+function colisaoRetangulo(ret1,ret2){
+    if(ret1.y>ret2.y+ret2.h){
+        return false;
+    }
+    if(ret1.y+ret1.h<ret2.y){
+        return false;
+    }
+    if(ret1.x > ret2.x+ret2.w){
+        return false
+    }
+    if(ret1.x+ret1.w<ret2.x){
+        return false;
+    }
+    return true;
+}
+function multMatPt(mat,p){
+    let resp=[0,0,0];
+    for( let i=0;i<3;i++){
+        for(let j=0;j<3;j++){
+            resp[i]+=mat[i][j]*p[j];
+        }
+    }
+    return resp;
+}
+class Retangulo{
+    constructor(x,y,w,h){
+        this.x=x;
+        this.y=y;
+        this.w=w;
+        this.h=h;
+        this.cor="red";
+        this.vx=0;
+        this.vy=0;
+        this.ang=0;
+        this.angy=0;
+    }
+    update(){
+        this.x=this.x+this.vx
+        this.y+=this.vy;
+        this.x=this.x%800;
+        this.y=this.y%800;
+        this.angy++;
+    }
+    draw(ctx){
+        ctx.fillStyle=this.cor;
+        const ant=ctx.getTransform();
+        //ctx.translate(this.x+this.w/2,this.y+this.h/2);
+        ctx.translate(this.x,this.y);
+        ctx.scale(this.w,this.h);    
+        ctx.translate(0.5,0.5);
+
+
+        let p1=[-0.5,-0.5,0];
+        let p2=[-0.5,0.5,0];
+        let p3=[0.5,0.5,0];
+        let p4=[0.5,-0.5,0];
+
+
+
+        let angZ=this.ang*Math.PI/180
+        const matRotZ=[
+            [Math.cos(angZ),Math.sin(angZ),0],
+            [-Math.sin(angZ),Math.cos(angZ),0],
+            [0,0,1]
+            ]
+
+
+        //ctx.rotate(this.ang*Math.PI/180);
+        
+        let angPirad=this.angy*Math.PI/180;
+        const matRoty=[
+            [Math.cos(angPirad),0,Math.sin(angPirad)],
+            [0,1,0],
+            [-Math.sin(angPirad),0,Math.cos(angPirad)]]
+       
+
+        p1=multMatPt(matRotZ,p1)
+        p2=multMatPt(matRotZ,p2)
+        p3=multMatPt(matRotZ,p3)
+        p4=multMatPt(matRotZ,p4)
+        
+        
+        p1=multMatPt(matRoty,p1)
+        p2=multMatPt(matRoty,p2)
+        p3=multMatPt(matRoty,p3)
+        p4=multMatPt(matRoty,p4)
+       
+
+        //desenhado pelos pontos
+        
+        ctx.beginPath();
+        ctx.moveTo(p1[0],p1[1])
+        ctx.lineTo(p2[0],p2[1])
+        ctx.lineTo(p3[0],p3[1])
+        ctx.lineTo(p4[0],p4[1])
+        ctx.fill()
+        
+       //ctx.fillRect(p1[0],p1[1],p4[0]-p1[0],p2[1]-p1[1])
+
+
+        //ctx.fillRect(-0.5,-0.5,1,1);
+        ctx.setTransform(ant);
+    }
+}

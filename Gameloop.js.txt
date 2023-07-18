@@ -1,0 +1,136 @@
+let movendo=false;
+let tecla=[];
+
+const objetos=[];
+const r1=new Retangulo(0,150,80,50)
+const r2=new Retangulo(0,50,50,50)
+const c1=new Circulo(100,100,40);
+const c2=new Circulo(200,200,30);
+const ninja= new Personagem(200,200,100,100,
+    [new Imagem(-0.5,-0.5,1,1,"imagens/ninjaParado.png"),
+    new Animacao(-0.5,-0.5,1,1,"imagens/ninjaCorrendo.png",8,0.1)]);
+const moeda=new Imagem(0,200,100,100,"imagens/moeda.png");
+moeda.vangy=1;
+objetos.push(r1);
+objetos.push(r2);
+objetos.push(c1);
+objetos.push(c2);
+objetos.push(ninja);
+objetos.push(moeda);
+
+const triangulo=new Poligono();
+triangulo.addPonto(0,0)
+triangulo.addPonto(0,100)
+triangulo.addPonto(100,100)
+//triangulo.vx=1;
+objetos.push(triangulo);
+const triangulo2=new Poligono();
+triangulo2.cor="red"
+triangulo2.addPonto(200,0)
+triangulo2.addPonto(200,100)
+triangulo2.addPonto(300,100)
+triangulo2.addPonto(300,0)
+objetos.push(triangulo2);
+
+//c1.vy=1;
+r2.cor="#0000FF"
+//r1.vy=1;
+window.onkeydown=(key)=>{
+    tecla[key.keyCode]=true
+    console.log("Tecla",tecla)
+};
+window.onkeyup=(key)=>{
+    tecla[key.keyCode]=false;
+};
+
+function inputs(){
+    movendo=false;
+    ninja.vx=0;
+    ninja.vy=0;
+    ninja.vup=0;
+    triangulo.vx=0
+    triangulo.vy=0
+    //tecla "a" apertada
+    if(tecla[65]==true){
+        movendo=true
+        triangulo.vx=-1
+        //ninja.angz--;
+    }
+    //tecla "d"
+    if(tecla[68]){
+        triangulo.vx=1
+        //ninja.angz++;
+    }
+    ninja.saidaAtual=0;
+    //tecla "s"
+    if(tecla[83]){
+        triangulo.vy=1
+        //ninja.saidaAtual=1;
+        //ninja.vup=-1;
+    }
+    //tecla "w"
+    if(tecla[87]){
+        triangulo.vy=-1
+        //ninja.saidaAtual=1;
+        //ninja.vup=1
+    }
+
+
+}
+
+function update(deltaTime){
+    /*
+    if(movendo){
+        r2.x=(r2.x+1)%800
+        //i=(i+1)%800
+    }
+    */
+   for(let obj of objetos){
+    obj.update(deltaTime);
+   }
+}
+function draw(){
+    ctx.clearRect(0,0,800,800);
+    for(let obj of objetos){
+        obj.draw(ctx);
+    }
+}
+
+let tempUltimoFrame=Date.now();
+function gameloop(){
+    let tempoAtual=Date.now();
+    let deltaTime=(tempoAtual-tempUltimoFrame)/1000;
+    tempUltimoFrame=tempoAtual;
+    inputs();
+    update(deltaTime);
+    draw();
+    if(colisaoRetangulo(r1,r2)){
+        clearInterval(loop);
+        alert("colidiu");
+    }
+    if(colisaoCirculos(c1,c2)){
+        clearInterval(loop);
+        alert("colidiu");
+    }
+    if(colisaoEixoSeparador(triangulo,triangulo2)){
+        clearInterval(loop);
+        alert("colidiu");
+    }
+    if(colisaoEixoSeparador(triangulo,c2)){
+        clearInterval(loop);
+        alert("colidiu");
+    }
+    /*if(colisaoRetangulo(moeda.boudingBox(),ninja.boudingBox())){
+        clearInterval(loop);
+        alert("pegou a moeda")
+    }
+    */
+
+}
+
+const canvas=document.getElementById("canvas1");
+const ctx= canvas.getContext("2d");
+ctx.fillStyle="#0000FF"
+ctx.fillRect(50,50,50,50)
+
+loop=setInterval(gameloop,16)

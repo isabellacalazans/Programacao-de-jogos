@@ -1,0 +1,132 @@
+function distPontos(p1,p2){
+    let dist = Math.pow(p1.x-p2.x,2)+Math.pow(p1.y-p2.y,2)
+    return Math.sqrt(dist);
+}
+function colisaoEixoSeparador(pol1,pol2){
+    listaRetas=[]
+    let ehCiruclo=false;
+    if(pol2.r){
+        ehCiruclo=true;
+    }
+    let p_prox=pol1.pontos[0]
+    for(let i=0;i<pol1.pontos.length;i++){
+        let p1=pol1.pontos[i]
+        let p2=pol1.pontos[(i+1)%pol1.pontos.length]
+        let aresta={
+            x:p2.x-p1.x,
+            y:p2.y-p1.y
+        }
+        let modulo=distPontos({x:0,y:0},aresta)
+        listaRetas.push({
+            x:-aresta.y/modulo,
+            y:aresta.x/modulo
+        });
+        if(ehCiruclo){
+            if(distPontos(p1,pol2)<distPontos(p_prox,pol2)){
+                p_prox=p1;
+            }
+        }
+    }
+    if(ehCiruclo){
+        let p1=p_prox;
+        let p2={x:pol2.x,y:pol2.y};
+        let aresta={
+            x:p2.x-p1.x,
+            y:p2.y-p1.y
+        }
+        let modulo=distPontos({x:0,y:0},aresta)
+        listaRetas.push({
+            x:aresta.x/modulo,
+            y:aresta.y/modulo
+        });
+
+    }else{
+        for(let i=0;i<pol2.pontos.length;i++){
+            let p1=pol2.pontos[i]
+            let p2=pol2.pontos[(i+1)%pol2.pontos.length]
+            let aresta={
+                x:p2.x-p1.x,
+                y:p2.y-p1.y
+            }
+            listaRetas.push({
+                x:-aresta.y,
+                y:aresta.x
+            });
+        }
+    }
+    for(let reta of listaRetas){
+        let maxValP1=null
+        let minValP1=null
+        for(let ponto of pol1.pontos){
+           let proj=ponto.x*reta.x+ponto.y*reta.y;
+           if(maxValP1==null || proj>maxValP1){
+            maxValP1=proj;
+           }
+           if(minValP1==null || proj<minValP1){
+            minValP1=proj;
+           }
+        }
+
+        let maxValP2=null;
+        let minValP2=null;
+        if(ehCiruclo){
+            let proj=pol2.x*reta.x+pol2.y*reta.y;
+            maxValP2=proj+pol2.r
+            minValP2=proj-pol2.r
+            console.log(reta,proj,minValP2,maxValP2,pol2.r)
+        }else{
+            for(let ponto of pol2.pontos){
+                let proj=ponto.x*reta.x+ponto.y*reta.y;
+                if(maxValP2==null || proj>maxValP2){
+                    maxValP2=proj;
+                }
+                if(minValP2==null || proj<minValP2){
+                    minValP2=proj;
+                }
+            }
+        }
+        if(maxValP1<minValP2){
+            return false;
+        }
+        if(maxValP2<minValP1){
+            return false;
+        }
+
+    }
+    return true;
+
+}
+
+
+
+
+
+
+class Poligono{
+    constructor(){
+        this.pontos=[];
+        this.cor="green"
+        this.vx=0;
+        this.vy=0;
+    }
+    addPonto(x,y){
+        this.pontos.push({x,y});
+    }
+    update(deltaTime){
+        for(let ponto of this.pontos){
+            ponto.x+=this.vx;
+            ponto.y+=this.vy;
+        }
+    }
+    draw(ctx){
+        ctx.beginPath();
+        ctx.moveTo(this.pontos[0].x,this.pontos[0].y);
+        for(let i=1;i<this.pontos.length;i++){
+            ctx.lineTo(this.pontos[i].x,this.pontos[i].y);
+        }
+        ctx.fillStyle=this.cor;
+        ctx.fill();
+
+    }
+
+}

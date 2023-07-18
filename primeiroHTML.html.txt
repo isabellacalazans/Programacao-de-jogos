@@ -1,0 +1,13 @@
+<html>
+<body>
+    <canvas width="800" height="800" id="canvas1">
+    </canvas>
+</body>
+<script src="Retangulo.js"></script>
+<script src="Circulo.js"></script>
+<script src="Imagem.js"></script>
+<script src="Personagem.js"></script>
+<script src="Poligono.js"></script>
+<script src="gameloop.js"></script>
+
+</html>

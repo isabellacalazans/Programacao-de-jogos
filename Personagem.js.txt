@@ -1,0 +1,39 @@
+class Personagem{
+    constructor(x,y,h,w,saidas){
+        this.x=x;
+        this.y=y;
+        this.h=h;
+        this.w=w;
+        this.saidas=saidas;
+        this.vx=this.vy=0;
+        this.angz=0;
+        this.angy=0;
+        this.vangy=0;
+        this.vup=0;
+        this.saidaAtual=0;
+    }
+    update(deltaTime){
+        this.x+=this.vup*Math.cos(this.angz*Math.PI/180);
+        this.y+=this.vup*Math.sin(this.angz*Math.PI/180);
+        this.angy+=this.vangy;
+        for(const s of this.saidas){
+            s.update(deltaTime);
+        }
+    }
+
+    draw(ctx){
+        const estado=ctx.getTransform();
+        ctx.translate(this.x+this.w/2,this.y+this.w/2);
+        ctx.scale(this.w,this.h);
+        ctx.rotate(this.angz*Math.PI/180);
+        if(this.vup<0){
+            ctx.scale(-1,1);
+        }
+           
+        this.saidas[this.saidaAtual].draw(ctx);
+        
+        ctx.setTransform(estado)
+    }
+
+
+}
